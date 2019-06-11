@@ -49,39 +49,41 @@ namespace DatingApp.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login (UserForLoginDto userForLoginDto)
         {
-            var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
 
-            if (userFromRepo == null)
-                return Unauthorized();
-            var claims = new []
-            {
-                // two claims for Id and username
+                throw new Exception("Computer Says Error");
+                var userFromRepo = await _repo.Login(userForLoginDto.Username.ToLower(), userForLoginDto.Password);
 
-                new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
-                new Claim(ClaimTypes.Name, userFromRepo.Username)
-            };
+                if (userFromRepo == null)
+                    return Unauthorized();
+                var claims = new []
+                {
+                    // two claims for Id and username
 
-            // creating siging key and hashcode for it
-            var key = new SymmetricSecurityKey(Encoding.UTF8
-                        .GetBytes(_config.GetSection("AppSettings:Token").Value));
+                    new Claim(ClaimTypes.NameIdentifier, userFromRepo.Id.ToString()),
+                    new Claim(ClaimTypes.Name, userFromRepo.Username)
+                };
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+                // creating siging key and hashcode for it
+                var key = new SymmetricSecurityKey(Encoding.UTF8
+                            .GetBytes(_config.GetSection("AppSettings:Token").Value));
 
-            // Created Token and created as descriptor 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1), // which will expire in 24hours
-                SigningCredentials = creds
-            };
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
+                // Created Token and created as descriptor 
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(claims),
+                    Expires = DateTime.Now.AddDays(1), // which will expire in 24hours
+                    SigningCredentials = creds
+                };
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+                var tokenHandler = new JwtSecurityTokenHandler();
 
-            return Ok(new {
-                token = tokenHandler.WriteToken(token)
-            });
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+
+                return Ok(new {
+                    token = tokenHandler.WriteToken(token)
+                });
         }
     }
 }
